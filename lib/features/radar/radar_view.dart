@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_controller.dart';
 import '../../domain/models/tracked_aircraft.dart';
+import '../../domain/models/tracking_center.dart';
 
 class RadarView extends StatelessWidget {
   const RadarView({required this.controller, super.key});
@@ -26,6 +27,7 @@ class RadarView extends StatelessWidget {
                   rangeNm: controller.settings.radarRangeNm,
                   showLabels: controller.settings.showLabels,
                   showTrails: controller.settings.showTrails,
+                  trackingCenter: controller.trackingCenter,
                 ),
                 child: GestureDetector(
                   onTapUp: (details) => _selectNearest(
@@ -59,11 +61,12 @@ class RadarView extends StatelessWidget {
                       child: Text('${controller.settings.radarRangeNm} NM',
                           style:
                               const TextStyle(fontWeight: FontWeight.bold))))),
-          const Positioned(
+          Positioned(
               left: 16,
               bottom: 14,
-              child: Text('CENTER · LONDON HEATHROW\nMOCK POSITION FEED',
-                  style: TextStyle(fontSize: 10, letterSpacing: 1.1))),
+              child: Text(
+                  'CENTER · ${controller.trackingCenter.label.toUpperCase()}\nMOCK POSITION FEED',
+                  style: const TextStyle(fontSize: 10, letterSpacing: 1.1))),
         ]);
       });
 
@@ -72,8 +75,8 @@ class RadarView extends StatelessWidget {
     TrackedAircraft? nearest;
     var distance = 28.0;
     for (final aircraft in controller.visibleAircraft) {
-      final point = RadarPainter.positionFor(
-          aircraft, size, controller.settings.radarRangeNm);
+      final point = RadarPainter.positionFor(aircraft,
+          controller.trackingCenter, size, controller.settings.radarRangeNm);
       final candidate = (tap - point).distance;
       if (candidate < distance && candidate <= radius) {
         distance = candidate;
@@ -90,22 +93,28 @@ class RadarPainter extends CustomPainter {
       required this.selectedIcao24,
       required this.rangeNm,
       required this.showLabels,
-      required this.showTrails});
+      required this.showTrails,
+      required this.trackingCenter});
   final List<TrackedAircraft> aircraft;
   final String? selectedIcao24;
   final int rangeNm;
   final bool showLabels;
   final bool showTrails;
+  final TrackingCenter trackingCenter;
 
-  static Offset positionFor(TrackedAircraft aircraft, Size size, int rangeNm) {
+  static Offset positionFor(TrackedAircraft aircraft,
+          TrackingCenter trackingCenter, Size size, int rangeNm) =>
+      positionForCoordinates(aircraft.state.latitude, aircraft.state.longitude,
+          trackingCenter, size, rangeNm);
+
+  static Offset positionForCoordinates(double latitude, double longitude,
+      TrackingCenter trackingCenter, Size size, int rangeNm) {
     const nmPerLatitudeDegree = 60.0;
-    final longitudeNm =
-        (aircraft.state.longitude - AppController.centerLongitude) *
-            60 *
-            math.cos(AppController.centerLatitude * math.pi / 180);
+    final longitudeNm = (longitude - trackingCenter.longitude) *
+        60 *
+        math.cos(trackingCenter.latitude * math.pi / 180);
     final latitudeNm =
-        (aircraft.state.latitude - AppController.centerLatitude) *
-            nmPerLatitudeDegree;
+        (latitude - trackingCenter.latitude) * nmPerLatitudeDegree;
     final scale = size.shortestSide / 2 / rangeNm;
     return Offset(size.width / 2 + longitudeNm * scale,
         size.height / 2 - latitudeNm * scale);
@@ -128,9 +137,29 @@ class RadarPainter extends CustomPainter {
         Offset(center.dx + radius, center.dy), grid);
     canvas.drawCircle(center, 3, Paint()..color = const Color(0xFF69E58B));
     for (final target in aircraft) {
-      final point = positionFor(target, size, rangeNm);
+      final point = positionFor(target, trackingCenter, size, rangeNm);
       if ((point - center).distance > radius) continue;
       final selected = target.state.icao24 == selectedIcao24;
+      if (showTrails && target.trail.length > 1) {
+        final trailPath = Path();
+        for (var index = 0; index < target.trail.length; index++) {
+          final observation = target.trail[index];
+          final trailPoint = positionForCoordinates(observation.latitude,
+              observation.longitude, trackingCenter, size, rangeNm);
+          if (index == 0) {
+            trailPath.moveTo(trailPoint.dx, trailPoint.dy);
+          } else {
+            trailPath.lineTo(trailPoint.dx, trailPoint.dy);
+          }
+        }
+        canvas.drawPath(
+            trailPath,
+            Paint()
+              ..color =
+                  selected ? const Color(0xAAFFD166) : const Color(0x8869E58B)
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = selected ? 2 : 1);
+      }
       canvas.save();
       canvas.translate(point.dx, point.dy);
       canvas.rotate(target.state.trackDegrees * math.pi / 180);
@@ -177,5 +206,6 @@ class RadarPainter extends CustomPainter {
       oldDelegate.selectedIcao24 != selectedIcao24 ||
       oldDelegate.rangeNm != rangeNm ||
       oldDelegate.showLabels != showLabels ||
-      oldDelegate.showTrails != showTrails;
+      oldDelegate.showTrails != showTrails ||
+      oldDelegate.trackingCenter != trackingCenter;
 }

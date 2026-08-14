@@ -1,4 +1,5 @@
 import '../../domain/models/airport.dart';
+import '../../domain/models/aircraft_identity.dart';
 import '../../domain/models/flight_route.dart';
 import '../../domain/providers/aircraft_enrichment_provider.dart';
 

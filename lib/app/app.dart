@@ -16,7 +16,8 @@ class AviJourneyApp extends StatefulWidget {
   State<AviJourneyApp> createState() => _AviJourneyAppState();
 }
 
-class _AviJourneyAppState extends State<AviJourneyApp> {
+class _AviJourneyAppState extends State<AviJourneyApp>
+    with WidgetsBindingObserver {
   late final AppController controller = widget.controller ??
       AppController(
         repository: MockAircraftRepository(
@@ -28,11 +29,22 @@ class _AviJourneyAppState extends State<AviJourneyApp> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     controller.initialize();
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      controller.resume();
+    } else {
+      controller.pause();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     if (widget.controller == null) controller.dispose();
     super.dispose();
   }

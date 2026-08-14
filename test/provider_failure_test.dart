@@ -15,6 +15,7 @@ class FailingRepository implements AircraftRepository {
 void main() {
   test('provider failure becomes visible state instead of throwing', () async {
     final controller = AppController(repository: FailingRepository());
+    addTearDown(controller.dispose);
     await controller.initialize();
     expect(controller.feedStatus, FeedStatus.error);
     expect(controller.aircraft, isEmpty);

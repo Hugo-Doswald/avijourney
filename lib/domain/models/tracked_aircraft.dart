@@ -1,4 +1,4 @@
-import '../providers/aircraft_enrichment_provider.dart';
+import 'aircraft_identity.dart';
 import 'aircraft_state.dart';
 import 'flight_route.dart';
 

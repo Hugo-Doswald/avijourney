@@ -18,4 +18,15 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('REAL MAP COMING NEXT'), findsOneWidget);
   });
+
+  testWidgets('settings labels the recommended interval as 60 seconds',
+      (tester) async {
+    await tester.pumpWidget(const AviJourneyApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Filters and settings'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('60 seconds (recommended)'), findsOneWidget);
+  });
 }

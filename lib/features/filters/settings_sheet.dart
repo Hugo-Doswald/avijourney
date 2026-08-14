@@ -53,7 +53,7 @@ class _SettingsSheet extends StatelessWidget {
                   ]
                       .map((duration) => DropdownMenuItem(
                           value: duration,
-                          child: Text(duration.inSeconds < 60
+                          child: Text(duration.inSeconds <= 60
                               ? '${duration.inSeconds} seconds${duration.inSeconds == 60 ? ' (recommended)' : ''}'
                               : '${duration.inMinutes} minutes')))
                       .toList(),

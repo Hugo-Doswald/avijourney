@@ -1,4 +1,5 @@
 import '../../domain/models/tracked_aircraft.dart';
+import '../../domain/models/aircraft_identity.dart';
 import '../../domain/models/flight_route.dart';
 import '../../domain/providers/aircraft_enrichment_provider.dart';
 import '../../domain/providers/aircraft_position_provider.dart';
@@ -36,13 +37,6 @@ class MockAircraftRepository implements AircraftRepository {
         state: state,
         identity: results[0] as AircraftIdentity?,
         route: results[1] as FlightRoute?,
-        trail: <AircraftPosition>[
-          AircraftPosition(
-            latitude: state.latitude,
-            longitude: state.longitude,
-            observedAt: state.observedAt,
-          ),
-        ],
       );
     }));
   }
