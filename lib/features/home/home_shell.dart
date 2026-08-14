@@ -1,15 +1,26 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_controller.dart';
+import '../../app/mapping/map_tile_source.dart';
+import '../../app/mapping/map_viewport_controller.dart';
 import '../cards/aircraft_cards_view.dart';
 import '../filters/settings_sheet.dart';
-import '../map/map_placeholder.dart';
+import '../map/aircraft_map_view.dart';
 import '../radar/radar_view.dart';
 
 class HomeShell extends StatefulWidget {
-  const HomeShell({required this.controller, super.key});
+  const HomeShell({
+    required this.controller,
+    required this.mapViewportController,
+    required this.mapTileSource,
+    this.showMapTiles = true,
+    super.key,
+  });
 
   final AppController controller;
+  final MapViewportController mapViewportController;
+  final MapTileSource mapTileSource;
+  final bool showMapTiles;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -36,7 +47,12 @@ class _HomeShellState extends State<HomeShell> {
       builder: (context, _) {
         final pages = <Widget>[
           RadarView(controller: widget.controller),
-          const MapPlaceholder(),
+          AircraftMapView(
+            controller: widget.controller,
+            viewportController: widget.mapViewportController,
+            tileSource: widget.mapTileSource,
+            showTiles: widget.showMapTiles,
+          ),
           AircraftCardsView(controller: widget.controller),
           AircraftCardsView(controller: widget.controller, savedOnly: true),
         ];

@@ -3,14 +3,23 @@ import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
 import '../data/mock/mock_aircraft_provider.dart';
 import '../data/mock/mock_enrichment_provider.dart';
+import '../data/mapping/open_street_map_tile_source.dart';
 import '../data/repositories/mock_aircraft_repository.dart';
 import '../features/home/home_shell.dart';
 import 'app_controller.dart';
+import 'mapping/map_viewport_controller.dart';
 
 class AviJourneyApp extends StatefulWidget {
-  const AviJourneyApp({super.key, this.controller});
+  const AviJourneyApp({
+    super.key,
+    this.controller,
+    this.mapViewportController,
+    this.showMapTiles = true,
+  });
 
   final AppController? controller;
+  final MapViewportController? mapViewportController;
+  final bool showMapTiles;
 
   @override
   State<AviJourneyApp> createState() => _AviJourneyAppState();
@@ -25,6 +34,9 @@ class _AviJourneyAppState extends State<AviJourneyApp>
           enrichment: const MockAircraftEnrichmentProvider(),
         ),
       );
+  late final MapViewportController mapViewportController =
+      widget.mapViewportController ??
+          MapViewportController(MapViewport.around(controller.trackingCenter));
 
   @override
   void initState() {
@@ -46,6 +58,7 @@ class _AviJourneyAppState extends State<AviJourneyApp>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     if (widget.controller == null) controller.dispose();
+    if (widget.mapViewportController == null) mapViewportController.dispose();
     super.dispose();
   }
 
@@ -55,7 +68,12 @@ class _AviJourneyAppState extends State<AviJourneyApp>
       title: 'AviJourney',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark(),
-      home: HomeShell(controller: controller),
+      home: HomeShell(
+        controller: controller,
+        mapViewportController: mapViewportController,
+        mapTileSource: const OpenStreetMapTileSource(),
+        showMapTiles: widget.showMapTiles,
+      ),
     );
   }
 }
