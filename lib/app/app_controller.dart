@@ -6,6 +6,10 @@ import '../core/errors/provider_exception.dart';
 import '../domain/models/airport.dart';
 import '../domain/models/app_settings.dart';
 import '../domain/models/tracked_aircraft.dart';
+import '../domain/models/followed_item.dart';
+import '../domain/models/search_result.dart';
+import '../data/local/static_airline_catalog.dart';
+import 'search/universal_search_service.dart';
 import '../domain/models/tracking_center.dart';
 import '../domain/providers/airport_search_provider.dart';
 import '../domain/providers/device_location_provider.dart';
@@ -22,17 +26,20 @@ class AppController extends ChangeNotifier {
     DeviceLocationProvider? deviceLocationProvider,
     AirportSearchProvider? airportSearchProvider,
     this.feedName = 'OpenSky',
+    UniversalSearchService searchService = const UniversalSearchService(),
   })  : _repository = repository,
         _trackingCenter = trackingCenter,
         _preferencesStore = preferencesStore,
         _deviceLocationProvider = deviceLocationProvider,
-        _airportSearchProvider = airportSearchProvider;
+        _airportSearchProvider = airportSearchProvider,
+        _searchService = searchService;
 
   static const minimumRefreshInterval = Duration(seconds: 30);
   final AircraftRepository _repository;
   final AppPreferencesStore _preferencesStore;
   final DeviceLocationProvider? _deviceLocationProvider;
   final AirportSearchProvider? _airportSearchProvider;
+  final UniversalSearchService _searchService;
   final String feedName;
   TrackingCenter _trackingCenter;
   List<TrackedAircraft> _aircraft = const [];
@@ -40,6 +47,7 @@ class AppController extends ChangeNotifier {
   FeedStatus _feedStatus = FeedStatus.connecting;
   String? _selectedIcao24;
   final Set<String> _saved = <String>{};
+  final Set<FollowedItem> _followedItems = <FollowedItem>{};
   Timer? _refreshTimer;
   Future<void>? _activeRefresh;
   Duration? _scheduledRefreshInterval;
@@ -53,6 +61,7 @@ class AppController extends ChangeNotifier {
   FeedStatus get feedStatus => _feedStatus;
   String? get selectedIcao24 => _selectedIcao24;
   Set<String> get saved => Set.unmodifiable(_saved);
+  Set<FollowedItem> get followedItems => Set.unmodifiable(_followedItems);
   Duration? get scheduledRefreshInterval => _scheduledRefreshInterval;
   bool get isRefreshScheduled => _refreshTimer?.isActive ?? false;
   bool get isChoosingCenterOnMap => _isChoosingCenterOnMap;
@@ -74,6 +83,16 @@ class AppController extends ChangeNotifier {
         _saved
           ..clear()
           ..addAll(persisted.savedAircraft);
+        _followedItems
+          ..clear()
+          ..addAll(persisted.followedItems);
+        for (final icao24 in _saved) {
+          _followedItems.add(FollowedItem(
+            type: FollowedItemType.aircraft,
+            identifier: icao24,
+            label: icao24.toUpperCase(),
+          ));
+        }
         notifyListeners();
       }
     } catch (_) {
@@ -141,6 +160,7 @@ class AppController extends ChangeNotifier {
         state: item.state,
         identity: item.identity,
         route: item.route,
+        flight: item.flight,
         trail: trail.length <= 30 ? trail : trail.sublist(trail.length - 30),
       );
     }).toList(growable: false);
@@ -202,6 +222,13 @@ class AppController extends ChangeNotifier {
   List<Airport> searchAirports(String query) =>
       _airportSearchProvider?.search(query) ?? const [];
 
+  List<SearchResult> search(String query) => _searchService.search(
+        query: query,
+        aircraft: _aircraft,
+        airlines: StaticAirlineCatalog.airlines,
+        airports: searchAirports(''),
+      );
+
   Future<void> chooseAirport(Airport airport) async {
     if (airport.latitude == null || airport.longitude == null) return;
     await setTrackingCenter(TrackingCenter(
@@ -256,6 +283,7 @@ class AppController extends ChangeNotifier {
         trackingCenter: _trackingCenter,
         settings: _settings,
         savedAircraft: _saved,
+        followedItems: _followedItems,
       ));
 
   void pause() {
@@ -271,7 +299,35 @@ class AppController extends ChangeNotifier {
   }
 
   void toggleSaved(String icao24) {
-    if (!_saved.add(icao24)) _saved.remove(icao24);
+    final aircraft =
+        _aircraft.where((item) => item.state.icao24 == icao24).firstOrNull;
+    final item = FollowedItem(
+      type: FollowedItemType.aircraft,
+      identifier: icao24,
+      label: aircraft?.primaryIdentifier ?? icao24.toUpperCase(),
+      subtitle: aircraft?.identity?.model,
+    );
+    if (!_saved.add(icao24)) {
+      _saved.remove(icao24);
+      _followedItems.remove(item);
+    } else {
+      _followedItems.add(item);
+    }
+    notifyListeners();
+    unawaited(_persist());
+  }
+
+  bool isFollowing(FollowedItem item) => _followedItems.contains(item);
+
+  void toggleFollowed(FollowedItem item) {
+    if (!_followedItems.add(item)) _followedItems.remove(item);
+    if (item.type == FollowedItemType.aircraft) {
+      if (_followedItems.contains(item)) {
+        _saved.add(item.identifier);
+      } else {
+        _saved.remove(item.identifier);
+      }
+    }
     notifyListeners();
     unawaited(_persist());
   }

@@ -80,7 +80,6 @@ class HexDbAircraftEnrichmentProvider implements AircraftEnrichmentProvider {
             origin: airports.first,
             destination: airports.last,
             source: 'HexDB route database',
-            verified: false,
           );
         }
       }

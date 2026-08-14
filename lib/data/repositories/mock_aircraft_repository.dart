@@ -1,6 +1,7 @@
 import '../../domain/models/tracked_aircraft.dart';
 import '../../domain/models/aircraft_identity.dart';
 import '../../domain/models/flight_route.dart';
+import '../../domain/models/flight.dart';
 import '../../domain/providers/aircraft_enrichment_provider.dart';
 import '../../domain/providers/aircraft_position_provider.dart';
 import '../../domain/repositories/aircraft_repository.dart';
@@ -37,6 +38,16 @@ class MockAircraftRepository implements AircraftRepository {
         state: state,
         identity: results[0] as AircraftIdentity?,
         route: results[1] as FlightRoute?,
+        flight: Flight(
+          operationalCallsign: state.callsign,
+          origin: (results[1] as FlightRoute?)?.origin,
+          destination: (results[1] as FlightRoute?)?.destination,
+          aircraftRegistration: (results[0] as AircraftIdentity?)?.registration,
+          aircraftIcao24: state.icao24,
+          aircraftType: (results[0] as AircraftIdentity?)?.model ??
+              (results[0] as AircraftIdentity?)?.typeCode,
+          source: (results[1] as FlightRoute?)?.source,
+        ),
       );
     }));
   }

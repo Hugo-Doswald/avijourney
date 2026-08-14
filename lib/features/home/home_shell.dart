@@ -8,6 +8,8 @@ import '../filters/settings_sheet.dart';
 import '../filters/tracking_location_sheet.dart';
 import '../map/aircraft_map_view.dart';
 import '../radar/radar_view.dart';
+import '../saved/followed_items_view.dart';
+import '../search/universal_search_sheet.dart';
 
 class HomeShell extends StatefulWidget {
   const HomeShell({
@@ -58,7 +60,7 @@ class _HomeShellState extends State<HomeShell> {
             showTiles: widget.showMapTiles,
           ),
           AircraftCardsView(controller: widget.controller),
-          AircraftCardsView(controller: widget.controller, savedOnly: true),
+          FollowedItemsView(controller: widget.controller),
         ];
         final wide = MediaQuery.sizeOf(context).width >= 700;
         final content = IndexedStack(index: _index, children: pages);
@@ -74,6 +76,15 @@ class _HomeShellState extends State<HomeShell> {
                       style: TextStyle(fontSize: 10, letterSpacing: 1.2)),
                 ]),
             actions: [
+              IconButton(
+                tooltip: 'Search AviJourney',
+                onPressed: () => showUniversalSearch(
+                  context,
+                  widget.controller,
+                  onShowOnMap: () => setState(() => _index = 1),
+                ),
+                icon: const Icon(Icons.search),
+              ),
               _StatusBadge(
                   status: widget.controller.feedStatus,
                   feedName: widget.controller.feedName),

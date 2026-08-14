@@ -57,10 +57,34 @@ saved aircraft identifiers are stored locally with `shared_preferences`.
 
 V0.3 requires a real map, but the tile supplier must be configurable. Respect attribution/licensing and avoid permanent coupling to one public tile service.
 
-## Flight identity provider — future
+## Flight identity provider
 
 ATC callsigns such as `BAW7LC` are not reliably reversible into passenger-facing numbers such as `BA783`.
 
-Create an interface now, but do not guess. Future sources may include schedule APIs, airport public feeds or cached confirmed mappings.
+The provider-independent `FlightIdentityProvider` and its positive/negative TTL
+cache are implemented. No external commercial-flight source is enabled in the
+production app yet: the currently reviewed free endpoints either require
+credentials, have usage terms unsuitable for an anonymous mobile client, or do
+not reliably verify the callsign-to-passenger-number relationship. The
+production adapter therefore returns an honest unresolved result and leaves the
+operational callsign primary. Tests inject verified provider results.
+
+Future sources may include schedule APIs, airport public feeds or cached
+confirmed mappings. A provider result must explicitly mark the identity as
+verified and preserve its provenance before a commercial number is displayed as
+primary. Airline-code metadata is presentation/search assistance only and is
+never used to convert `BAW...` into `BA...`.
 
 Results should carry provenance/confidence.
+
+## Universal search and follows
+
+Universal search is local and submit-driven. It combines the last live OpenSky
+snapshot, HexDB aircraft/route enrichment, the embedded airport catalog,
+lightweight static airline metadata and any verified flight results already
+attached to that snapshot. It does not make a provider request for each
+keystroke. External flight lookup caching remains at the provider boundary.
+
+Aircraft, flights, airlines, routes and airports can be followed through a
+provider-independent typed identifier stored locally. Following does not imply
+notifications, cloud sync or a provider subscription.

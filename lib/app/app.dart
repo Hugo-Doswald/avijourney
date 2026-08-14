@@ -10,6 +10,7 @@ import '../data/mapping/open_street_map_tile_source.dart';
 import '../data/mock/mock_aircraft_provider.dart';
 import '../data/mock/mock_enrichment_provider.dart';
 import '../data/opensky/opensky_aircraft_position_provider.dart';
+import '../domain/providers/flight_identity_provider.dart';
 import '../data/repositories/live_aircraft_repository.dart';
 import '../data/repositories/mock_aircraft_repository.dart';
 import '../features/home/home_shell.dart';
@@ -66,11 +67,14 @@ class _AviJourneyAppState extends State<AviJourneyApp>
       repository: LiveAircraftRepository(
         positions: OpenSkyAircraftPositionProvider(client: client),
         enrichment: HexDbAircraftEnrichmentProvider(client: client),
+        flightIdentity: CachedFlightIdentityProvider(
+          const NoOpFlightIdentityProvider(),
+        ),
       ),
       preferencesStore: const SharedPreferencesAppStore(),
       deviceLocationProvider: const GeolocatorDeviceLocationProvider(),
       airportSearchProvider: const StaticAirportSearchProvider(),
-      feedName: 'OpenSky',
+      feedName: 'OpenSky + HexDB',
     );
   }
 

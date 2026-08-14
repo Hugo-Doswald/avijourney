@@ -65,6 +65,35 @@ ICAO, IATA, name, city, country and coordinates where available.
 ### TrackedAircraft
 Presentation/application aggregate composed from state + identity + route.
 
+### Flight
+
+An operational journey, distinct from the physical airframe. It may contain a
+verified commercial number, operational callsign, airline, schedule, status,
+route, aircraft reference, provenance and verification state. A flight may
+reference an aircraft, while an aircraft can operate many flights over time;
+commercial flight numbers are therefore never stored on `AircraftIdentity`.
+
+`FlightRoute` remains route enrichment associated with a callsign. It cannot by
+itself verify a passenger-facing flight number.
+
+## Flight identity and search
+
+`FlightIdentityProvider` resolves a callsign to a provider-independent `Flight`.
+Only a result explicitly marked `verified` with source provenance can make its
+commercial number the primary identifier. Production currently uses a cached
+no-op implementation, preserving unresolved callsigns until a sufficiently
+reliable credential-free schedule source is selected.
+
+Universal search is a submit-driven application service. It token-normalizes a
+single query and searches the current shared aircraft snapshot, flight/route
+data, HexDB enrichment, the embedded airport catalog and static airline
+metadata. Widgets neither query providers nor issue requests on keystrokes.
+
+`FollowedItem` stores a type (`aircraft`, `flight`, `airline`, `route` or
+`airport`), stable identifier and display metadata. The local preferences store
+persists these items; legacy saved-aircraft identifiers are migrated into the
+same model while the existing saved-aircraft API remains compatible.
+
 ## Repository responsibilities
 
 - merge live state with cached enrichment;
@@ -97,3 +126,5 @@ At minimum:
 - callsign/context -> route cache;
 - airport code -> airport metadata cache;
 - persistent saved-aircraft store.
+- cached verified-flight lookup, including shorter-lived negative results;
+- persistent typed followed-item store.

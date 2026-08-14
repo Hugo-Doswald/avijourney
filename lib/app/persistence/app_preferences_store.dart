@@ -1,16 +1,19 @@
 import '../../domain/models/app_settings.dart';
 import '../../domain/models/tracking_center.dart';
+import '../../domain/models/followed_item.dart';
 
 class PersistedAppState {
   const PersistedAppState({
     required this.trackingCenter,
     required this.settings,
     required this.savedAircraft,
+    this.followedItems = const {},
   });
 
   final TrackingCenter trackingCenter;
   final AppSettings settings;
   final Set<String> savedAircraft;
+  final Set<FollowedItem> followedItems;
 }
 
 abstract interface class AppPreferencesStore {

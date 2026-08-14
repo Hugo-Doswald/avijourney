@@ -65,8 +65,6 @@ void main() {
 
     expect(route?.origin?.displayCode, 'DUB');
     expect(route?.destination?.displayCode, 'LHR');
-    expect(route?.commercialFlightNumber, isNull);
     expect(route?.primaryIdentifier, 'EIN17A');
-    expect(route?.verified, isFalse);
   });
 }

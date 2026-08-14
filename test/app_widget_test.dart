@@ -31,6 +31,27 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('60 seconds (recommended)'), findsOneWidget);
+    expect(find.textContaining('Milestone 1 mock provider'), findsNothing);
+    await tester.scrollUntilVisible(
+        find.textContaining('Mock feed · live'), 300,
+        scrollable: find.byType(Scrollable).last);
+    expect(find.textContaining('Mock feed · live'), findsOneWidget);
+  });
+
+  testWidgets('universal search waits for submission', (tester) async {
+    await tester.pumpWidget(
+        const AviJourneyApp(showMapTiles: false, useLiveData: false));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Search AviJourney'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+        find.byKey(const Key('universalSearchField')), 'BAW12');
+    await tester.pump();
+    expect(find.text('FLIGHTS'), findsNothing);
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    await tester.pumpAndSettle();
+    expect(find.text('FLIGHTS'), findsOneWidget);
+    expect(find.text('AIRCRAFT'), findsOneWidget);
   });
 
   testWidgets('Radar Cards and Saved navigation continues to share state',

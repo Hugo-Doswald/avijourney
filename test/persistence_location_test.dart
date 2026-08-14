@@ -3,6 +3,7 @@ import 'package:avijourney/app/persistence/app_preferences_store.dart';
 import 'package:avijourney/data/local/static_airport_search_provider.dart';
 import 'package:avijourney/domain/models/tracked_aircraft.dart';
 import 'package:avijourney/domain/models/tracking_center.dart';
+import 'package:avijourney/domain/models/followed_item.dart';
 import 'package:avijourney/domain/providers/device_location_provider.dart';
 import 'package:avijourney/domain/repositories/aircraft_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -67,6 +68,33 @@ void main() {
     expect(second.trackingCenter.type, TrackingCenterType.map);
     expect(second.settings.radarRangeNm, 80);
     expect(second.saved, contains('abc123'));
+    expect(
+        second.followedItems,
+        contains(const FollowedItem(
+          type: FollowedItemType.aircraft,
+          identifier: 'abc123',
+          label: 'ignored by equality',
+        )));
+  });
+
+  test('non-aircraft followed items persist across restart', () async {
+    final store = MemoryPreferencesStore();
+    final first =
+        AppController(repository: EmptyRepository(), preferencesStore: store);
+    const item = FollowedItem(
+      type: FollowedItemType.route,
+      identifier: 'LHR-LAX',
+      label: 'LHR → LAX',
+    );
+    first.toggleFollowed(item);
+    await Future<void>.delayed(Duration.zero);
+    final second =
+        AppController(repository: EmptyRepository(), preferencesStore: store);
+    addTearDown(first.dispose);
+    addTearDown(second.dispose);
+    await second.initialize();
+    second.pause();
+    expect(second.followedItems, contains(item));
   });
 
   test('current-location permission failure leaves tracking centre unchanged',

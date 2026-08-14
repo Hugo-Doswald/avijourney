@@ -1,22 +1,26 @@
 import 'aircraft_identity.dart';
 import 'aircraft_state.dart';
 import 'flight_route.dart';
+import 'flight.dart';
 
 class TrackedAircraft {
   const TrackedAircraft({
     required this.state,
     this.identity,
     this.route,
+    this.flight,
     this.trail = const <AircraftPosition>[],
   });
 
   final AircraftState state;
   final AircraftIdentity? identity;
   final FlightRoute? route;
+  final Flight? flight;
   final List<AircraftPosition> trail;
 
   String get primaryIdentifier {
-    final routeIdentifier = route?.primaryIdentifier.trim();
+    final routeIdentifier =
+        flight?.primaryIdentifier.trim() ?? route?.primaryIdentifier.trim();
     if (routeIdentifier != null && routeIdentifier.isNotEmpty) {
       return routeIdentifier;
     }

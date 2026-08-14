@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../app/persistence/app_preferences_store.dart';
 import '../../domain/models/app_settings.dart';
 import '../../domain/models/tracking_center.dart';
+import '../../domain/models/followed_item.dart';
 
 class SharedPreferencesAppStore implements AppPreferencesStore {
   const SharedPreferencesAppStore();
@@ -19,6 +20,7 @@ class SharedPreferencesAppStore implements AppPreferencesStore {
   static const _showLabels = 'show_labels';
   static const _savedOnly = 'saved_only';
   static const _savedAircraft = 'saved_aircraft';
+  static const _followedItems = 'followed_items_v1';
 
   @override
   Future<PersistedAppState?> load() async {
@@ -52,6 +54,10 @@ class SharedPreferencesAppStore implements AppPreferencesStore {
       ),
       savedAircraft:
           (preferences.getStringList(_savedAircraft) ?? const []).toSet(),
+      followedItems: (preferences.getStringList(_followedItems) ?? const [])
+          .map(FollowedItem.fromStorageValue)
+          .whereType<FollowedItem>()
+          .toSet(),
     );
   }
 
@@ -75,6 +81,8 @@ class SharedPreferencesAppStore implements AppPreferencesStore {
       preferences.setBool(_savedOnly, state.settings.savedOnly),
       preferences.setStringList(
           _savedAircraft, state.savedAircraft.toList(growable: false)),
+      preferences.setStringList(_followedItems,
+          state.followedItems.map((item) => item.storageValue).toList()),
     ]);
   }
 }

@@ -113,11 +113,20 @@ class _SettingsSheet extends StatelessWidget {
                   leading: const Icon(Icons.sensors),
                   title: const Text('Provider / feed'),
                   subtitle: Text(
-                      'Milestone 1 mock provider · ${controller.feedStatus.name}')),
+                      '${controller.feedName} · ${_statusLabel(controller.feedStatus)}')),
               OutlinedButton(
                   onPressed: () =>
                       controller.updateSettings(const AppSettings()),
                   child: const Text('Reset settings')),
             ]));
   }
+
+  String _statusLabel(FeedStatus status) => switch (status) {
+        FeedStatus.connecting => 'connecting',
+        FeedStatus.live => 'live',
+        FeedStatus.cached => 'cached / stale',
+        FeedStatus.offline => 'offline',
+        FeedStatus.rateLimited => 'rate limited',
+        FeedStatus.error => 'feed error',
+      };
 }

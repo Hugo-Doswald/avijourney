@@ -114,7 +114,7 @@ class StaticAirportSearchProvider implements AirportSearchProvider {
   @override
   List<Airport> search(String query) {
     final normalized = query.trim().toLowerCase();
-    if (normalized.isEmpty) return airports.take(8).toList(growable: false);
+    if (normalized.isEmpty) return airports;
     return airports.where((airport) {
       final values = [airport.iata, airport.icao, airport.name, airport.city];
       return values
