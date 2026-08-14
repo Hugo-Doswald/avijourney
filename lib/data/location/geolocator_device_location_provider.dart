@@ -25,10 +25,8 @@ class GeolocatorDeviceLocationProvider implements DeviceLocationProvider {
             DeviceLocationStatus.permissionDenied);
       }
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 15),
-        ),
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 15),
       );
       return DeviceLocationResult.available(
           position.latitude, position.longitude);
