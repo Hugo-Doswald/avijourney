@@ -1,10 +1,41 @@
 import 'package:flutter/material.dart';
 
 import '../core/theme/app_theme.dart';
+import '../data/mock/mock_aircraft_provider.dart';
+import '../data/mock/mock_enrichment_provider.dart';
+import '../data/repositories/mock_aircraft_repository.dart';
 import '../features/home/home_shell.dart';
+import 'app_controller.dart';
 
-class AviJourneyApp extends StatelessWidget {
-  const AviJourneyApp({super.key});
+class AviJourneyApp extends StatefulWidget {
+  const AviJourneyApp({super.key, this.controller});
+
+  final AppController? controller;
+
+  @override
+  State<AviJourneyApp> createState() => _AviJourneyAppState();
+}
+
+class _AviJourneyAppState extends State<AviJourneyApp> {
+  late final AppController controller = widget.controller ??
+      AppController(
+        repository: MockAircraftRepository(
+          positions: const MockAircraftPositionProvider(),
+          enrichment: const MockAircraftEnrichmentProvider(),
+        ),
+      );
+
+  @override
+  void initState() {
+    super.initState();
+    controller.initialize();
+  }
+
+  @override
+  void dispose() {
+    if (widget.controller == null) controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +43,7 @@ class AviJourneyApp extends StatelessWidget {
       title: 'AviJourney',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark(),
-      home: const HomeShell(),
+      home: HomeShell(controller: controller),
     );
   }
 }

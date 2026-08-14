@@ -7,7 +7,7 @@ AviJourney is a mobile-first aviation and travel companion. V0.3 begins with liv
 
 ## Status
 
-**V0.3.0 — Flutter rebuild foundation**
+**V0.3.0 — Milestone 1 Flutter application shell**
 
 The working Tauri proof of concept remains in `Hugo-Doswald/flightscope-prototype`. Its V0.2.5 build proved the core experience on Android using live OpenSky positions and HexDB enrichment. This repository is a clean Flutter/Dart rebuild, not a line-by-line port.
 
@@ -37,6 +37,17 @@ The working Tauri proof of concept remains in `Hugo-Doswald/flightscope-prototyp
 - Explicit connecting, live, cached, offline, rate-limited and provider-error states.
 
 Commercial flight-number resolution is a separate future provider. Callsign-to-flight-number guessing is prohibited.
+
+## Run locally
+
+Install a current Flutter SDK with Android tooling, then run:
+
+```sh
+flutter pub get
+flutter run
+```
+
+Milestone 1 uses geographically meaningful mock aircraft through domain provider interfaces. OpenSky, HexDB and a real slippy-map provider are deliberately deferred. The Map tab clearly identifies that boundary rather than displaying a fake geographic map.
 
 ## Documentation
 

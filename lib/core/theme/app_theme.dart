@@ -12,6 +12,25 @@ abstract final class AppTheme {
       colorScheme: const ColorScheme.dark(
         primary: primary,
         surface: surface,
+        secondary: Color(0xFFFFD166),
+        error: Color(0xFFFF6B6B),
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF07110B),
+        foregroundColor: Color(0xFFE6F6EA),
+        elevation: 0,
+      ),
+      cardTheme: CardTheme(
+        color: const Color(0xFF0B1B11),
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(color: Color(0xFF1D3B27)),
+          borderRadius: BorderRadius.circular(14),
+        ),
+      ),
+      dividerColor: const Color(0xFF24472F),
+      textTheme: const TextTheme(
+        bodyMedium: TextStyle(color: Color(0xFFD8E8DC)),
+        bodySmall: TextStyle(color: Color(0xFF94AA9A)),
       ),
       navigationBarTheme: const NavigationBarThemeData(
         backgroundColor: surface,
