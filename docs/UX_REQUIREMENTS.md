@@ -1,0 +1,54 @@
+# AviJourney V0.3 UX Requirements
+
+## Navigation
+
+Primary portrait navigation: Radar, Map, Cards, Saved. Landscape may adapt placement, but all controls remain inside safe areas.
+
+## Header
+
+Show AviJourney identity, development version, feed status and visible-aircraft count. OpenSky is a provider, not the product brand.
+
+## Radar
+
+- Default 20 NM.
+- Tap range badge for 20 / 80 / 140 / 200 NM.
+- Wider range reduces label density.
+- Selected target remains identifiable.
+- Trails are observed historical positions only.
+
+## Map
+
+Must behave like a real map application: pinch zoom, pan, geographic marker alignment, selectable aircraft and persistent viewport while switching views.
+
+## Cards
+
+Route example:
+
+```text
+LHR                      EXT
+London Heathrow          Exeter Airport
+        -------->
+```
+
+Airport name is secondary but readable. Never invent an IATA code.
+
+## Identity hierarchy
+
+1. verified commercial number;
+2. callsign;
+3. registration;
+4. ICAO24.
+
+If both verified commercial number and callsign exist, show both with commercial number primary.
+
+## Settings
+
+Refresh interval belongs in settings. Suggested choices: 30 seconds, 60 seconds (recommended initial free-use default), 2 minutes, 5 minutes.
+
+## Status language
+
+Connecting, Live, Cached, Offline, Rate limited, Feed error. Cached data should show age when practical.
+
+## Accessibility/readability
+
+Do not rely solely on colour for climb/descent/selection. Use comfortable touch targets, respect text scaling where possible and prevent label clutter from obscuring controls.
