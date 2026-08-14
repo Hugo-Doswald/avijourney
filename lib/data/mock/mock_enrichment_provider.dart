@@ -32,13 +32,13 @@ class MockAircraftEnrichmentProvider implements AircraftEnrichmentProvider {
         callsign: 'BAW12',
         origin: Airport(icao: 'EGLL', iata: 'LHR', name: 'London Heathrow'),
         destination: Airport(icao: 'EGTE', iata: 'EXT', name: 'Exeter Airport'),
-        source: 'Milestone 1 mock fixture'),
+        source: 'Automated test mock fixture'),
     'EIN4KL': FlightRoute(
         callsign: 'EIN4KL',
         origin: Airport(icao: 'EIDW', iata: 'DUB', name: 'Dublin Airport'),
         destination:
             Airport(icao: 'EGLL', iata: 'LHR', name: 'London Heathrow'),
-        source: 'Milestone 1 mock fixture'),
+        source: 'Automated test mock fixture'),
   };
 
   @override

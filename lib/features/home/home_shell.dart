@@ -5,6 +5,7 @@ import '../../app/mapping/map_tile_source.dart';
 import '../../app/mapping/map_viewport_controller.dart';
 import '../cards/aircraft_cards_view.dart';
 import '../filters/settings_sheet.dart';
+import '../filters/tracking_location_sheet.dart';
 import '../map/aircraft_map_view.dart';
 import '../radar/radar_view.dart';
 
@@ -46,7 +47,10 @@ class _HomeShellState extends State<HomeShell> {
       listenable: widget.controller,
       builder: (context, _) {
         final pages = <Widget>[
-          RadarView(controller: widget.controller),
+          RadarView(
+            controller: widget.controller,
+            onOpenTrackingLocation: _openTrackingLocation,
+          ),
           AircraftMapView(
             controller: widget.controller,
             viewportController: widget.mapViewportController,
@@ -66,11 +70,13 @@ class _HomeShellState extends State<HomeShell> {
                   Text('AVIJOURNEY',
                       style: TextStyle(
                           fontWeight: FontWeight.w800, letterSpacing: 1.8)),
-                  Text('V0.3.0 · MILESTONE 1',
+                  Text('V0.3.0 · DEVELOPMENT',
                       style: TextStyle(fontSize: 10, letterSpacing: 1.2)),
                 ]),
             actions: [
-              _StatusBadge(status: widget.controller.feedStatus),
+              _StatusBadge(
+                  status: widget.controller.feedStatus,
+                  feedName: widget.controller.feedName),
               Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Center(
@@ -78,8 +84,11 @@ class _HomeShellState extends State<HomeShell> {
                           '${widget.controller.visibleAircraft.length} visible'))),
               IconButton(
                   tooltip: 'Filters and settings',
-                  onPressed: () =>
-                      showSettingsSheet(context, widget.controller),
+                  onPressed: () => showSettingsSheet(
+                        context,
+                        widget.controller,
+                        onChooseOnMap: _showMapForCenterSelection,
+                      ),
                   icon: const Icon(Icons.tune)),
             ],
           ),
@@ -113,17 +122,26 @@ class _HomeShellState extends State<HomeShell> {
       },
     );
   }
+
+  void _showMapForCenterSelection() => setState(() => _index = 1);
+
+  void _openTrackingLocation() => showTrackingLocationSheet(
+        context,
+        widget.controller,
+        onChooseOnMap: _showMapForCenterSelection,
+      );
 }
 
 class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.status});
+  const _StatusBadge({required this.status, required this.feedName});
   final FeedStatus status;
+  final String feedName;
 
   @override
   Widget build(BuildContext context) {
     final label = switch (status) {
       FeedStatus.connecting => 'CONNECTING',
-      FeedStatus.live => 'MOCK LIVE',
+      FeedStatus.live => 'LIVE · ${feedName.toUpperCase()}',
       FeedStatus.cached => 'CACHED',
       FeedStatus.offline => 'OFFLINE',
       FeedStatus.rateLimited => 'RATE LIMITED',

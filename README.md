@@ -7,7 +7,7 @@ AviJourney is a mobile-first aviation and travel companion. V0.3 begins with liv
 
 ## Status
 
-**V0.3.0 — Milestone 2 geographic map foundation**
+**V0.3.0 — Milestone 3 live tracking development build**
 
 The working Tauri proof of concept remains in `Hugo-Doswald/flightscope-prototype`. Its V0.2.5 build proved the core experience on Android using live OpenSky positions and HexDB enrichment. This repository is a clean Flutter/Dart rebuild, not a line-by-line port.
 
@@ -47,7 +47,9 @@ flutter pub get
 flutter run
 ```
 
-Milestone 2 uses geographically meaningful mock aircraft through domain provider interfaces and displays them on a real interactive `flutter_map` slippy map backed by replaceable OpenStreetMap tile configuration. OpenSky and HexDB remain deliberately deferred.
+Milestone 3 uses geographically bounded OpenSky state vectors and cached HexDB enrichment through replaceable domain providers. Radar and the interactive `flutter_map` map share the same user-selectable tracking centre. Small settings, the selected centre and saved aircraft are stored locally with `shared_preferences`.
+
+Tracking can be centred on the device's foreground location, a locally indexed airport, or a long-pressed map point. Android location permission is requested only when **Use my location** is selected; AviJourney does not request background location access.
 
 Pushes to `main` run formatting, analysis and tests, build an Android debug APK, and publish it as the `AviJourney-v0.3-debug-APK` workflow artifact.
 

@@ -10,6 +10,7 @@ import '../../app/app_controller.dart';
 import '../../app/mapping/map_tile_source.dart';
 import '../../app/mapping/map_viewport_controller.dart';
 import '../../domain/models/tracked_aircraft.dart';
+import '../../domain/models/tracking_center.dart';
 import '../aircraft_detail/aircraft_detail_sheet.dart';
 
 class AircraftMapView extends StatefulWidget {
@@ -42,68 +43,137 @@ class _AircraftMapViewState extends State<AircraftMapView>
   bool get wantKeepAlive => true;
 
   @override
+  void initState() {
+    super.initState();
+    widget.viewportController.addListener(_moveToExternalViewport);
+  }
+
+  @override
+  void didUpdateWidget(covariant AircraftMapView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.viewportController != widget.viewportController) {
+      oldWidget.viewportController.removeListener(_moveToExternalViewport);
+      widget.viewportController.addListener(_moveToExternalViewport);
+    }
+  }
+
+  void _moveToExternalViewport() {
+    final viewport = widget.viewportController.viewport;
+    _mapController.move(
+      LatLng(viewport.latitude, viewport.longitude),
+      viewport.zoom,
+    );
+  }
+
+  @override
+  void dispose() {
+    widget.viewportController.removeListener(_moveToExternalViewport);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     super.build(context);
     final viewport = widget.viewportController.viewport;
     return ColoredBox(
       color: const Color(0xFF07150D),
-      child: FlutterMap(
-        key: const Key('aircraftGeographicMap'),
-        mapController: _mapController,
-        options: MapOptions(
-          initialCenter: LatLng(viewport.latitude, viewport.longitude),
-          initialZoom: viewport.zoom,
-          minZoom: 3,
-          maxZoom: 19,
-          interactionOptions: const InteractionOptions(
-            flags: InteractiveFlag.pinchZoom |
-                InteractiveFlag.drag |
-                InteractiveFlag.doubleTapZoom |
-                InteractiveFlag.flingAnimation,
-          ),
-          onPositionChanged: (camera, _) {
-            widget.viewportController.update(MapViewport(
-              latitude: camera.center.latitude,
-              longitude: camera.center.longitude,
-              zoom: camera.zoom,
-            ));
-            if ((_zoom >= 9) != (camera.zoom >= 9)) {
-              setState(() => _zoom = camera.zoom);
-            } else {
-              _zoom = camera.zoom;
-            }
-          },
-        ),
+      child: Stack(
         children: [
-          if (widget.showTiles)
-            TileLayer(
-              urlTemplate: widget.tileSource.urlTemplate,
-              userAgentPackageName: widget.tileSource.userAgentPackageName,
-              maxNativeZoom: widget.tileSource.maximumNativeZoom,
-              tileBuilder: darkModeTileBuilder,
+          FlutterMap(
+            key: const Key('aircraftGeographicMap'),
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: LatLng(viewport.latitude, viewport.longitude),
+              initialZoom: viewport.zoom,
+              minZoom: 3,
+              maxZoom: 19,
+              interactionOptions: const InteractionOptions(
+                flags: InteractiveFlag.pinchZoom |
+                    InteractiveFlag.drag |
+                    InteractiveFlag.doubleTapZoom |
+                    InteractiveFlag.flingAnimation,
+              ),
+              onLongPress: (_, point) => _setCenterFromMap(point),
+              onPositionChanged: (camera, _) {
+                widget.viewportController.updateFromMap(MapViewport(
+                  latitude: camera.center.latitude,
+                  longitude: camera.center.longitude,
+                  zoom: camera.zoom,
+                ));
+                if ((_zoom >= 9) != (camera.zoom >= 9)) {
+                  setState(() => _zoom = camera.zoom);
+                } else {
+                  _zoom = camera.zoom;
+                }
+              },
             ),
-          MarkerLayer(
-            markers: buildAircraftMapMarkers(
-              context: context,
-              aircraft: widget.controller.visibleAircraft,
-              selectedIcao24: widget.controller.selectedIcao24,
-              showLabels: _zoom >= 9,
-              onTap: _selectAircraft,
-            ),
-          ),
-          RichAttributionWidget(
-            popupBackgroundColor: const Color(0xEE09150E),
-            showFlutterMapAttribution: false,
-            attributions: [
-              TextSourceAttribution(
-                widget.tileSource.attributionText,
-                onTap: () => unawaited(launchUrl(
-                  widget.tileSource.attributionUri,
-                  mode: LaunchMode.externalApplication,
-                )),
+            children: [
+              if (widget.showTiles)
+                TileLayer(
+                  urlTemplate: widget.tileSource.urlTemplate,
+                  userAgentPackageName: widget.tileSource.userAgentPackageName,
+                  maxNativeZoom: widget.tileSource.maximumNativeZoom,
+                  tileBuilder: darkModeTileBuilder,
+                ),
+              MarkerLayer(markers: [
+                Marker(
+                  key: const Key('trackingCenterMarker'),
+                  point: LatLng(widget.controller.trackingCenter.latitude,
+                      widget.controller.trackingCenter.longitude),
+                  width: 44,
+                  height: 44,
+                  child: const _TrackingCenterMarker(),
+                ),
+              ]),
+              MarkerLayer(
+                markers: buildAircraftMapMarkers(
+                  context: context,
+                  aircraft: widget.controller.visibleAircraft,
+                  selectedIcao24: widget.controller.selectedIcao24,
+                  showLabels: _zoom >= 9,
+                  onTap: _selectAircraft,
+                ),
+              ),
+              RichAttributionWidget(
+                popupBackgroundColor: const Color(0xEE09150E),
+                showFlutterMapAttribution: false,
+                attributions: [
+                  TextSourceAttribution(
+                    widget.tileSource.attributionText,
+                    onTap: () => unawaited(launchUrl(
+                      widget.tileSource.attributionUri,
+                      mode: LaunchMode.externalApplication,
+                    )),
+                  ),
+                ],
               ),
             ],
           ),
+          Positioned(
+            top: 12,
+            right: 12,
+            child: FloatingActionButton.small(
+              key: const Key('recenterMapButton'),
+              tooltip: 'Re-centre on tracking location',
+              onPressed: _recenter,
+              child: const Icon(Icons.center_focus_strong),
+            ),
+          ),
+          if (widget.controller.isChoosingCenterOnMap)
+            Positioned(
+              top: 12,
+              left: 12,
+              right: 64,
+              child: Material(
+                color: const Color(0xEE09150E),
+                borderRadius: BorderRadius.circular(8),
+                child: const Padding(
+                  padding: EdgeInsets.all(10),
+                  child: Text('Long-press the map to set the tracking centre',
+                      textAlign: TextAlign.center),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -113,6 +183,49 @@ class _AircraftMapViewState extends State<AircraftMapView>
     widget.controller.select(aircraft.state.icao24);
     showAircraftDetail(context, aircraft, widget.controller);
   }
+
+  void _recenter() {
+    final center = widget.controller.trackingCenter;
+    widget.viewportController.update(MapViewport(
+      latitude: center.latitude,
+      longitude: center.longitude,
+      zoom: math.max(_zoom, 9),
+    ));
+  }
+
+  void _setCenterFromMap(LatLng point) {
+    unawaited(widget.controller.setTrackingCenter(TrackingCenter(
+      latitude: point.latitude,
+      longitude: point.longitude,
+      label:
+          'Map point ${point.latitude.toStringAsFixed(3)}, ${point.longitude.toStringAsFixed(3)}',
+      type: TrackingCenterType.map,
+    )));
+    widget.viewportController.update(MapViewport(
+      latitude: point.latitude,
+      longitude: point.longitude,
+      zoom: _zoom,
+    ));
+  }
+}
+
+class _TrackingCenterMarker extends StatelessWidget {
+  const _TrackingCenterMarker();
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        label: 'Active tracking centre',
+        child: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: const Color(0xCC09150E),
+            border: Border.all(
+                color: Theme.of(context).colorScheme.secondary, width: 3),
+          ),
+          child: Icon(Icons.add_location,
+              color: Theme.of(context).colorScheme.secondary, size: 24),
+        ),
+      );
 }
 
 List<Marker> buildAircraftMapMarkers({

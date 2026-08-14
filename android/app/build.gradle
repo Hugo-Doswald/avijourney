@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.caf4u.avijourney"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 35
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

@@ -31,4 +31,8 @@ class MapViewportController extends ChangeNotifier {
     _viewport = viewport;
     notifyListeners();
   }
+
+  void updateFromMap(MapViewport viewport) {
+    _viewport = viewport;
+  }
 }

@@ -2,18 +2,21 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_controller.dart';
 import '../../domain/models/app_settings.dart';
+import 'tracking_location_sheet.dart';
 
-Future<void> showSettingsSheet(
-        BuildContext context, AppController controller) =>
+Future<void> showSettingsSheet(BuildContext context, AppController controller,
+        {required VoidCallback onChooseOnMap}) =>
     showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
         useSafeArea: true,
-        builder: (_) => _SettingsSheet(controller: controller));
+        builder: (_) => _SettingsSheet(
+            controller: controller, onChooseOnMap: onChooseOnMap));
 
 class _SettingsSheet extends StatelessWidget {
-  const _SettingsSheet({required this.controller});
+  const _SettingsSheet({required this.controller, required this.onChooseOnMap});
   final AppController controller;
+  final VoidCallback onChooseOnMap;
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +34,15 @@ class _SettingsSheet extends StatelessWidget {
                     icon: const Icon(Icons.close))
               ]),
               const SizedBox(height: 16),
+              ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.location_on_outlined),
+                  title: const Text('Tracking location'),
+                  subtitle: Text(controller.trackingCenter.label),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => showTrackingLocationSheet(context, controller,
+                      onChooseOnMap: onChooseOnMap)),
+              const Divider(),
               Text('Radar range · ${controller.settings.radarRangeNm} NM'),
               SegmentedButton<int>(
                   segments: const [20, 80, 140, 200]

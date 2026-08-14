@@ -5,10 +5,12 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   testWidgets('shell navigates and exposes quick radar range choices',
       (tester) async {
-    await tester.pumpWidget(const AviJourneyApp(showMapTiles: false));
+    await tester.pumpWidget(
+        const AviJourneyApp(showMapTiles: false, useLiveData: false));
     await tester.pumpAndSettle();
     expect(find.text('AVIJOURNEY'), findsOneWidget);
     expect(find.text('20 NM'), findsOneWidget);
+    expect(find.textContaining('CENTER · LONDON HEATHROW'), findsOneWidget);
     await tester.tap(find.byKey(const Key('rangeBadge')));
     await tester.pumpAndSettle();
     expect(find.text('80 NM'), findsOneWidget);
@@ -21,7 +23,8 @@ void main() {
 
   testWidgets('settings labels the recommended interval as 60 seconds',
       (tester) async {
-    await tester.pumpWidget(const AviJourneyApp(showMapTiles: false));
+    await tester.pumpWidget(
+        const AviJourneyApp(showMapTiles: false, useLiveData: false));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byTooltip('Filters and settings'));
@@ -32,7 +35,8 @@ void main() {
 
   testWidgets('Radar Cards and Saved navigation continues to share state',
       (tester) async {
-    await tester.pumpWidget(const AviJourneyApp(showMapTiles: false));
+    await tester.pumpWidget(
+        const AviJourneyApp(showMapTiles: false, useLiveData: false));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('rangeBadge')), findsOneWidget);
 

@@ -7,8 +7,13 @@ import '../../domain/models/tracked_aircraft.dart';
 import '../../domain/models/tracking_center.dart';
 
 class RadarView extends StatelessWidget {
-  const RadarView({required this.controller, super.key});
+  const RadarView({
+    required this.controller,
+    required this.onOpenTrackingLocation,
+    super.key,
+  });
   final AppController controller;
+  final VoidCallback onOpenTrackingLocation;
 
   @override
   Widget build(BuildContext context) =>
@@ -64,9 +69,16 @@ class RadarView extends StatelessWidget {
           Positioned(
               left: 16,
               bottom: 14,
-              child: Text(
-                  'CENTER · ${controller.trackingCenter.label.toUpperCase()}\nMOCK POSITION FEED',
-                  style: const TextStyle(fontSize: 10, letterSpacing: 1.1))),
+              child: InkWell(
+                  key: const Key('radarCenterControl'),
+                  onTap: onOpenTrackingLocation,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Text(
+                          'CENTER · ${controller.trackingCenter.label.toUpperCase()}\n${controller.feedName.toUpperCase()} POSITION FEED',
+                          style: const TextStyle(
+                              fontSize: 10, letterSpacing: 1.1))))),
         ]);
       });
 

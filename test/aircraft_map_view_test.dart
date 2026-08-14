@@ -6,6 +6,7 @@ import 'package:avijourney/data/mock/mock_aircraft_provider.dart';
 import 'package:avijourney/data/mock/mock_enrichment_provider.dart';
 import 'package:avijourney/data/repositories/mock_aircraft_repository.dart';
 import 'package:avijourney/features/map/aircraft_map_view.dart';
+import 'package:avijourney/domain/models/tracking_center.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -39,7 +40,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('aircraftGeographicMap')), findsOneWidget);
-    final markerLayer = tester.widget<MarkerLayer>(find.byType(MarkerLayer));
+    final markerLayer = tester
+        .widgetList<MarkerLayer>(find.byType(MarkerLayer))
+        .firstWhere((layer) =>
+            layer.markers.length == controller.visibleAircraft.length);
     expect(markerLayer.markers, hasLength(controller.visibleAircraft.length));
     for (var index = 0; index < markerLayer.markers.length; index++) {
       expect(markerLayer.markers[index].point.latitude,
@@ -121,6 +125,7 @@ void main() {
     await tester.pumpWidget(AviJourneyApp(
       mapViewportController: viewport,
       showMapTiles: false,
+      useLiveData: false,
     ));
     await tester.pumpAndSettle();
 
@@ -141,5 +146,31 @@ void main() {
     expect(viewport.viewport.longitude, movedViewport.longitude);
     expect(viewport.viewport.zoom, movedViewport.zoom);
     expect(find.byKey(const Key('aircraftGeographicMap')), findsOneWidget);
+  });
+
+  testWidgets('long press selects a map tracking centre', (tester) async {
+    final controller = createController();
+    addTearDown(controller.dispose);
+    await controller.refresh();
+    final viewport = MapViewportController(
+      MapViewport.around(controller.trackingCenter),
+    );
+    addTearDown(viewport.dispose);
+
+    await tester.pumpWidget(MaterialApp(
+      home: AircraftMapView(
+        controller: controller,
+        viewportController: viewport,
+        tileSource: const OpenStreetMapTileSource(),
+        showTiles: false,
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.longPress(find.byKey(const Key('aircraftGeographicMap')));
+    await tester.pump();
+
+    expect(controller.trackingCenter.type, TrackingCenterType.map);
+    expect(find.byKey(const Key('trackingCenterMarker')), findsOneWidget);
+    expect(find.byKey(const Key('recenterMapButton')), findsOneWidget);
   });
 }
